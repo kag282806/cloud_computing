@@ -1,0 +1,27 @@
+{
+  "so_ca_dat": 21,
+  "ca_dat": [
+    "Trang đăng nhập",
+    "Từ chối ghi khi chưa đăng nhập",
+    "Sai mật khẩu bị từ chối",
+    "Đổi ID phiên sau đăng nhập",
+    "Phiên và CSRF chung giữa hai tiến trình",
+    "Tổng thu chi và chênh lệch tháng",
+    "Ghi chú hiển thị dưới dạng văn bản",
+    "Lọc tháng không lẫn số liệu",
+    "Từ chối ngày không tồn tại",
+    "Từ chối số tiền âm",
+    "Từ chối danh mục khác loại",
+    "Từ chối POST thiếu token",
+    "Sửa giao dịch từ máy khác",
+    "Sổ của tài khoản B không có dữ liệu A",
+    "B không đọc được bản ghi của A",
+    "B không sửa hoặc xóa được bản ghi của A",
+    "Xóa và tính lại tổng",
+    "Health cục bộ trả 200",
+    "Health trả 503 khi chưa sẵn sàng",
+    "Mất một tiến trình vẫn đọc được dữ liệu và phiên",
+    "Đăng xuất kết thúc phiên"
+  ],
+  "gioi_han": "Bản sao SQLite; giả lập khóa MySQL. Chưa xác minh MySQL, TLS RDS hoặc AWS."
+}
