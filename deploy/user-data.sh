@@ -1,41 +1,51 @@
-#!/bin/bash
-# Copy into EC2 Launch Template.
+#!/usr/bin/env bash
 set -euo pipefail
+
 export DEBIAN_FRONTEND=noninteractive
-REGION='ap-southeast-1'
+REGION='us-east-1'
 REPO_URL='https://github.com/kag282806/cloud_computing.git'
-COMMIT_SHA='077f6bd5aebfcc61c831a510dc05cc30c182d4ff'
+COMMIT_SHA='YOUR_40_CHAR_COMMIT_SHA_HERE'
 PARAMETER='/lab/so-thu-chi/database'
 APP='/var/www/so-thu-chi'
+
 [[ "$COMMIT_SHA" =~ ^[0-9a-f]{40}$ ]] || { echo 'Set an exact Git commit SHA'; exit 1; }
+
 apt-get update
 apt-get install -y apache2 php libapache2-mod-php php-mysql mysql-client git curl ca-certificates python3-boto3 stress-ng
 systemctl stop apache2
+
 git clone "$REPO_URL" "$APP"
 git -C "$APP" checkout --detach "$COMMIT_SHA"
 mkdir -p "$APP/runtime"
+
 curl --fail --silent --show-error --retry 4 \
- https://truststore.pki.rds.amazonaws.com/global/global-bundle.pem \
- -o /etc/ssl/certs/aws-rds-global-bundle.pem
+  https://truststore.pki.rds.amazonaws.com/global/global-bundle.pem \
+  -o /etc/ssl/certs/aws-rds-global-bundle.pem
 chmod 644 /etc/ssl/certs/aws-rds-global-bundle.pem
+
 python3 "$APP/deploy/fetch_config.py" --region "$REGION" \
- --parameter "$PARAMETER" --output "$APP/config/database.json"
+  --parameter "$PARAMETER" --output "$APP/config/database.json"
 chown root:www-data "$APP/config/database.json"
 chmod 640 "$APP/config/database.json"
+
 cp "$APP/deploy/so-thu-chi.conf" /etc/apache2/sites-available/so-thu-chi.conf
 a2dissite 000-default.conf
 a2ensite so-thu-chi.conf
 apache2ctl configtest
+
 curl --fail --silent --show-error --retry 4 \
- https://amazoncloudwatch-agent.s3.amazonaws.com/ubuntu/amd64/latest/amazon-cloudwatch-agent.deb \
- -o /tmp/amazon-cloudwatch-agent.deb
+  https://amazoncloudwatch-agent.s3.amazonaws.com/ubuntu/amd64/latest/amazon-cloudwatch-agent.deb \
+  -o /tmp/amazon-cloudwatch-agent.deb
 dpkg -i /tmp/amazon-cloudwatch-agent.deb
+
 touch /var/log/apache2/so-thu-chi-access.log /var/log/apache2/so-thu-chi-error.log
 /opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl \
- -a fetch-config -m ec2 -s -c "file:$APP/monitoring/cloudwatch-agent.json"
+  -a fetch-config -m ec2 -s -c "file:$APP/monitoring/cloudwatch-agent.json"
+
 systemctl enable apache2
 touch "$APP/runtime/ready"
 systemctl restart apache2
+
 curl --fail --silent http://127.0.0.1/health.php
 echo 'EXPENSE_BOOK provisioning completed'
 # No schema import here: creating or replacing a web node must never reset data.
